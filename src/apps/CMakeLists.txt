@@ -9,6 +9,8 @@ SET_TARGET_PROPERTIES(trainer_planar PROPERTIES
                                      OUTPUT_NAME trainer_planar
 )
 
+if(catkin_FOUND)
 install(TARGETS trainer_planar
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+endif()

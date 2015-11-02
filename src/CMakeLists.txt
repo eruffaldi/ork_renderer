@@ -9,9 +9,10 @@ if(NOT ASSIMP_FOUND)
   message(WARNING "Assimp not found, not building synthetic views")
 endif()
 if(ASSIMP_FOUND AND NOT ${ASSIMP_VERSION} VERSION_LESS "3.0.0")
-  message(STATUS "Found assimp v3")
+  message(STATUS "Found assimp v3 ${ASSIMP_LIBRARY} ${ASSIMP_INCLUDE_DIRS}")
   set(EXTRA_SOURCES)
-  set(EXTRA_LIBRARIES assimp)
+  link_directories(${ASSIMP_LIBRARY_DIRS})
+  set(EXTRA_LIBRARIES ${ASSIMP_LIBRARIES})
 else()
   message(STATUS "Building assimp v3")
   set(ASSIMP_INCLUDE_DIRS ./assimp/include)
@@ -30,9 +31,11 @@ endif()
 # create the 2d rendering library
 add_library(${PROJECT_NAME}_2d renderer2d.cpp)
 target_link_libraries(${PROJECT_NAME}_2d ${OpenCV_LIBRARIES})
+if(catkin_FOUND)
 install(TARGETS ${PROJECT_NAME}_2d
           DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
+endif()
 
 # create the 3d rendering library
 set(SOURCES model.cpp renderer3d.cpp utils.cpp)
@@ -66,27 +69,29 @@ target_link_libraries(${PROJECT_NAME}_3d ${EXTRA_LIBRARIES}
                                          freeimage
 )
 
+if(catkin_FOUND)
 install(TARGETS ${PROJECT_NAME}_3d
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
+endif()
 
 # add an executable to render views to a file
 ADD_EXECUTABLE(view_generator main.cpp)
 
 SET_PROPERTY(TARGET view_generator PROPERTY DEBUG_POSTFIX ${ASSIMP_DEBUG_POSTFIX})
 
-TARGET_LINK_LIBRARIES(view_generator ${EXTRA_LIBRARIES})
 
-target_link_libraries(view_generator ${PROJECT_NAME}_3d)
-target_link_libraries(view_generator ${PROJECT_NAME}_2d)
+target_link_libraries(view_generator ${EXTRA_LIBRARIES} ${PROJECT_NAME}_3d ${PROJECT_NAME}_2d )
 
 SET_TARGET_PROPERTIES(view_generator PROPERTIES
                                      OUTPUT_NAME view_generator
 )
 
+if(catkin_FOUND)
 install(TARGETS view_generator
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+endif()
 
 # add some executables
 add_subdirectory(apps)
